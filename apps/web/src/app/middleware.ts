@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from "../../node_modules/next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 export function middleware(req: NextRequest) {
     console.log(req.url);
