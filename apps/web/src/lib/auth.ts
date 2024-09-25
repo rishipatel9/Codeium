@@ -18,40 +18,10 @@ const NEXT_AUTH = {
     error: "/auth/error",
   },
   callbacks: {
-    async session({ session, token }: { session: any; token: any }) {
-      const userExists = await prisma.user.findFirst({
-        where: {
-          email: session.user.email,
-        },
-      });
-
-      if (userExists && userExists.provider !== token.provider) {
-        throw new Error(
-          `You have previously signed in with ${userExists.provider}. Please use ${userExists.provider} to sign in.`,
-        );
-      }
-
-      session.user.id = token.id;
-      session.user.provider = token.provider;
-      return session;
+    async redirect() {      
+      return "/session"; 
     },
-    async jwt({
-      token,
-      account,
-      user,
-    }: {
-      token: any;
-      account: any;
-      user: any;
-    }) {
-      if (user) {
-        token.id = user.id;
-        token.provider = account.provider;
-      }
-      return token;
-    },
-  },
-
+  }
 };
 
 
