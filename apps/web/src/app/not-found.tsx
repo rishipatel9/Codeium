@@ -10,12 +10,15 @@ const NotFound = () => {
           404 - Page Not Found
         </h1>
         <p className="mb-8 text-lg text-muted-foreground md:text-xl">
-          Oops! The page you're looking for doesn't exist.
+          Oops! The page you&#39;re looking for doesn&#39;t exist.
         </p>
         <Button asChild size="lg">
-          <Link  href="/"
-           className="inline-flex h-10 items-center justify-center rounded-md bg-[#7f7ff5] text-white bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-          >Go Back Home</Link>
+          <Link
+            href="/"
+            className="inline-flex h-10 items-center justify-center rounded-md bg-[#7f7ff5] text-white bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+          >
+            Go Back Home
+          </Link>
         </Button>
       </main>
     </div>

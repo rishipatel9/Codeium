@@ -1,4 +1,5 @@
 'use client';
+import SignOut from '@/components/SignOut';
 import { useParams } from 'next/navigation';
 
 const SessionIdPage = () => {
@@ -11,6 +12,7 @@ const SessionIdPage = () => {
   return (
     <div>
       <h1>Session Details for {sessionId}</h1>
+      <SignOut/>
     </div>
   );
 };
