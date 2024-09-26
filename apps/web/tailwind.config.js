@@ -5,7 +5,11 @@ module.exports = {
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      backgroundImage: {
+        'custom-gradient': ' radial-gradient(circle, rgba(255,255,255,1) 37%, rgba(207,207,249,1) 100%)',
+      },
+    },
   },
   plugins: [],
 }
