@@ -5,7 +5,7 @@ const DELAY=0.04;
 
 export function LandingPage() {
   return (
-    <div className="flex flex-col min-h-[100dvh] justify-center items-center text-center bg-white text-[#7f7ff5] bg-dot-pattern ">
+    <div className="flex flex-col min-h-[100dvh] justify-center items-center text-center bg-custom-gradient text-[#7f7ff5] bg-dot-pattern ">
       <header className="w-full flex justify-center items-center px-4 lg:px-6 h-14 border-b">
         <Link href="#" className="flex items-center justify-center" prefetch={false}>
           <CodeIcon className="h-6 w-6" />
@@ -14,7 +14,7 @@ export function LandingPage() {
         <nav className="ml-auto flex gap-4 sm:gap-6">
           <Link
             href="#"
-            className="inline-flex h-10 items-center justify-center rounded-md bg-[#7f7ff5] text-white bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+            className="inline-flex h-10 items-center justify-center rounded-md bg-[#7f7ff5] hover:bg-[#6363f3] text-white bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
             prefetch={false}
           >
             Login

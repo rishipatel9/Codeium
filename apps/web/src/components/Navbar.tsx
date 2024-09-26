@@ -3,7 +3,7 @@ import Link from 'next/link';
 import SignOut from './SignOut';
 
 
-const Navbar = async () => {
+const Navbar =  () => {
     return (
         <nav className="bg-white text-[#7f7ff5] border-b mb-2 ">
             <div className="max-w-7xl h-14 mx-auto flex justify-between items-center px-4 py-3 md:py-4">

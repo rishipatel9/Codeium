@@ -11,7 +11,7 @@ const SignOut = () => {
     }
   return (
     <div>
-      <Button variant='outline' className='bg-[#7f7ff5] text-white' onClick={handleSignOut}>Signout</Button>
+      <Button variant='outline' className='bg-[#7f7ff5] text-white hover:bg-[#6363f3]' onClick={handleSignOut}>Signout</Button>
     </div>
   )
 }
