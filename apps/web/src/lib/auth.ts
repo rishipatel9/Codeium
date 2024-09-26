@@ -1,5 +1,7 @@
 import GoogleProvider from "next-auth/providers/google";
 import GithubProvider from "next-auth/providers/github";
+import prisma from "./prisma";
+import { Usr } from "@/types";
 
 const NEXT_AUTH = {
   providers: [
@@ -18,12 +20,37 @@ const NEXT_AUTH = {
     error: "/auth/error",
   },
   callbacks: {
-    async redirect() {      
-      return "/session"; 
+    async redirect() {
+      return "/session";
     },
-  }
+  },
+  events: {
+    async signIn({ user, account }:{user:Usr,account:any}) {
+      try {
+        console.log(user);
+        console.log(account);
+        const existingUser = await prisma.user.findUnique({
+          where: {
+            email: user.email || "",
+          },
+        });
+        if (!existingUser) {
+          const createdUser = await prisma.user.create({
+            data: {
+              email: user.email || "",
+              name: user.name || "", 
+            },
+          });
+          console.log("User created:", createdUser);
+        } else {
+          console.log("User already exists:", existingUser);
+        }
+      } catch (error) {
+        console.error("Error creating user:", error);
+        throw new Error("User creation failed");
+      }
+    },
+  },
 };
-
-
 
 export { NEXT_AUTH };
