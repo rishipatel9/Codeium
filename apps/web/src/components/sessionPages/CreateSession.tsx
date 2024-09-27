@@ -6,7 +6,6 @@ import {
   CardContent,
 
 } from "@/components/ui/card"
-
 import {
   Dialog,
   DialogContent,
@@ -18,31 +17,45 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import Navbar from "./Navbar"
+import Navbar from "../Navbar"
 import { PlusIcon } from "@/icons/PlusIcon"
-import {  useState } from "react"
+import {  useEffect, useState } from "react"
 import axios from "axios"
 import { useRouter } from "next/navigation"
+import SessionTable from "./SessionTable"
+import { getSession } from "next-auth/react"
 
 export function CreateSession() {
   const [name, setName] = useState<string>("");
   const [desc, setDesc] = useState<string>("");
-  const [sessions, setSessions] = useState();
-  const router=useRouter();
+  const [dbsession, setDbSessions] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true); // New loading state
+  const router = useRouter();
+  const sessions = getSession();
+
+  useEffect(() => {
+    const getDBsession = async () => {
+      try {
+        const res = await axios.get("/api/getsessions");
+        setDbSessions(res.data);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoading(false); // Set loading to false after data is fetched
+      }
+    };
+    getDBsession();
+  }, []);
 
   const handleClick = async () => {
     try {
-      const res = await axios.post('/api/session', 
-       { name, desc },
-      );
-      console.log(res.data.id);
+      const res = await axios.post("/api/createsession", { name, desc });
       router.push(`/session/${encodeURIComponent(res.data.id)}`);
-      
     } catch (error) {
       console.error("Error:", error);
       alert("An error occurred.");
     }
-  }
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -62,26 +75,21 @@ export function CreateSession() {
                   <DialogContent className="sm:max-w-[425px] bg-white border-2 border-[#6363f3]">
                     <DialogHeader>
                       <DialogTitle className="">Create New App</DialogTitle>
-                      <DialogDescription className="">
-                      </DialogDescription>
+                      <DialogDescription className=""></DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                       <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="name" className="text-right ">
-                          Name
-                        </Label>
+                        <Label htmlFor="name" className="text-right ">Name</Label>
                         <Input
-                          onChange={(event: any) => setName(event?.target?.value)}
+                          onChange={(event) => setName(event.target.value)}
                           id="name"
                           className="col-span-3 border border-[#6363f3]"
                         />
                       </div>
                       <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="username" className="text-right ">
-                          Description
-                        </Label>
+                        <Label htmlFor="username" className="text-right ">Description</Label>
                         <Input
-                          onChange={(event: any) => setDesc(event?.target?.value)}
+                          onChange={(event) => setDesc(event.target.value)}
                           id="description"
                           className="col-span-3 border border-[#6363f3]"
                         />
@@ -96,9 +104,10 @@ export function CreateSession() {
                 </Dialog>
               </CardContent>
             </Card>
+            <SessionTable sessions={dbsession} loading={loading} /> {/* Pass loading state */}
           </div>
         </div>
       </main>
     </div>
-  )
+  );
 }
