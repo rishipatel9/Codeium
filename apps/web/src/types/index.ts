@@ -4,3 +4,8 @@ export type Usr= {
   email: string;
   image: string;
 }
+
+
+export type Session={
+  
+}
