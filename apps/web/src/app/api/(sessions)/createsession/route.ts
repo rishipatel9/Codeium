@@ -1,7 +1,6 @@
 import { NEXT_AUTH } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { fetchAndUploadTemplate } from "@/utils/TemplateCreation";
-import { createClient } from "@supabase/supabase-js";
 import { NextApiResponse } from "next";
 import { AuthOptions, getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";

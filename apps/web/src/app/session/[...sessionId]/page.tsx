@@ -6,72 +6,64 @@ import { Folder, File, ChevronRight, ChevronDown } from 'lucide-react';
 import { supabaseClient } from '@/utils/SupabaseClient';
 import dynamic from 'next/dynamic';
 
-// Dynamically import Monaco editor to avoid server-side rendering issues
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
   ssr: false,
-  loading: () => <p>Loading editor...</p>, // Fallback while Monaco Editor loads
+  loading: () => <p>Loading editor...</p>,
 });
+
+interface FileStructure {
+  [key: string]: FileStructure | null;
+}
 
 const FileExplorer = () => {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [fileStructure, setFileStructure] = useState<Record<string, any> | null>(null);
+  const [fileStructure, setFileStructure] = useState<FileStructure>({});
   const [fileContent, setFileContent] = useState<string | null>(null);
   const [currentFilePath, setCurrentFilePath] = useState<string | null>(null);
-  const [fileType, setFileType] = useState<string | null>(null); // Track file type for Monaco language
+  const [fileType, setFileType] = useState<string | null>(null);
 
-  // Toggle folder open/close and fetch structure if needed
-  const toggleFolder = (path: string) => {
+  const toggleFolder = async (path: string) => {
     setExpanded(prev => ({ ...prev, [path]: !prev[path] }));
     if (!expanded[path]) {
-      fetchFileStructure(path);
+      await fetchFileStructure(path);
     }
   };
 
-  // Fetch file structure from Supabase
   const fetchFileStructure = async (path: string = 'react') => {
     try {
-      console.log(`Fetching file structure for path: ${path}`);
       const { data, error } = await supabaseClient.storage
         .from(process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME as string)
-        .list(path, { limit: 100, offset: 0 });
+        .list(path);
 
       if (error) {
         console.error('Error fetching file structure:', error);
         return;
       }
 
-      console.log('Fetched data:', data);
+      const newStructure: FileStructure = {};
 
-      const structuredData = data?.reduce((acc: any, file: any) => {
-        console.log(`Processing file: ${file.name}`);
-        const parts = file.name.split('/');
-        let current = acc;
-        parts.forEach((part: string, idx: number) => {
-          if (idx === parts.length - 1) {
-            current[part] = null; // It's a file
-          } else {
-            current[part] = current[part] || {};
-            current = current[part];
-          }
-        });
-        return acc;
-      }, {});
-
-      console.log('Structured data:', structuredData);
+      for (const item of data || []) {
+        if (item.metadata?.mimetype === null) {
+          // This is a folder
+          newStructure[item.name] = {};
+        } else {
+          // This is a file
+          newStructure[item.name] = null;
+        }
+      }
 
       setFileStructure(prev => ({
         ...prev,
-        [path]: structuredData,
+        [path]: newStructure
       }));
+      console.log(fileStructure);
     } catch (error) {
       console.error('Failed to fetch files:', error);
     }
   };
 
-  // Fetch file content and file type from Supabase
   const fetchFileContent = async (path: string) => {
     try {
-      console.log(`Fetching content for file: ${path}`);
       const { data, error } = await supabaseClient.storage
         .from(process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME as string)
         .download(path);
@@ -83,43 +75,37 @@ const FileExplorer = () => {
 
       if (data) {
         const textContent = await data.text();
-        console.log('File content:', textContent); // Debug log
         setFileContent(textContent);
         setCurrentFilePath(path);
-        setFileType(getFileType(path)); // Determine file type
-      } else {
-        console.error('No file data returned');
+        setFileType(getFileType(path));
       }
     } catch (error) {
       console.error('Failed to fetch file:', error);
     }
   };
 
-  // Determine the file type for Monaco Editor's language setting
   const getFileType = (path: string) => {
-    const extension = path.split('.').pop();
-    switch (extension) {
-      case 'js':
-        return 'javascript';
-      case 'ts':
-        return 'typescript';
-      case 'json':
-        return 'json';
-      case 'css':
-        return 'css';
-      case 'html':
-        return 'html';
-      default:
-        return 'plaintext';
-    }
+    const extension = path.split('.').pop()?.toLowerCase();
+    const typeMap: { [key: string]: string } = {
+      js: 'javascript',
+      ts: 'typescript',
+      json: 'json',
+      css: 'css',
+      html: 'html'
+    };
+    return typeMap[extension || ''] || 'plaintext';
   };
 
-  // Save the edited file back to Supabase
-  const saveFile = async (path: string, content: string) => {
+  const saveFile = async () => {
+    if (!currentFilePath || !fileContent) return;
+
     try {
       const { error } = await supabaseClient.storage
         .from(process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME as string)
-        .update(path, content, { cacheControl: '3600', upsert: true });
+        .update(currentFilePath, fileContent, {
+          cacheControl: '3600',
+          upsert: true
+        });
 
       if (error) {
         console.error('Error saving file:', error);
@@ -132,32 +118,34 @@ const FileExplorer = () => {
   };
 
   useEffect(() => {
-    fetchFileStructure(); // Fetch root level initially
+    fetchFileStructure();
   }, []);
 
-  // Render the file tree structure recursively
-  const renderTree = (tree: Record<string, any> | null, path = '') => {
-    if (!tree) return null;
-    return Object.entries(tree).map(([key, value]) => {
-      const currentPath = path ? `${path}/${key}` : key;
-      const isFolder = typeof value === 'object' && value !== null;
-      const isExpanded = expanded[currentPath as keyof typeof expanded] || false;
-
-      console.log('Rendering:', { key, value, isFolder, currentPath, isExpanded });
+  const renderTree = (structure: FileStructure, currentPath: string = '') => {
+    return Object.entries(structure).map(([name, value]) => {
+      const fullPath = currentPath ? `${currentPath}/${name}` : name;
+      const isFolder = value !== null;
+      const isExpanded = expanded[fullPath];
 
       return (
-        <div key={currentPath} className="ml-4">
+        <div key={fullPath} className="ml-4">
           <div
             className="flex items-center cursor-pointer hover:bg-gray-100 p-1"
-            onClick={() => isFolder ? toggleFolder(currentPath) : fetchFileContent(currentPath)}
+            onClick={() => isFolder ? toggleFolder(fullPath) : fetchFileContent(fullPath)}
           >
-            {isFolder ? (
+            {isFolder && (
               isExpanded ? <ChevronDown className="w-4 h-4 mr-1" /> : <ChevronRight className="w-4 h-4 mr-1" />
-            ) : null}
-            {isFolder ? <Folder className="w-4 h-4 mr-1 text-yellow-500" /> : <File className="w-4 h-4 mr-1 text-gray-500" />}
-            <span>{key}</span>
+            )}
+            {isFolder ? (
+              <Folder className="w-4 h-4 mr-1 text-yellow-500" />
+            ) : (
+              <File className="w-4 h-4 mr-1 text-gray-500" />
+            )}
+            <span>{name}</span>
           </div>
-          {isFolder && isExpanded && renderTree(value, currentPath)}
+          {isFolder && isExpanded && fileStructure[fullPath] && (
+            renderTree(fileStructure[fullPath] as FileStructure, fullPath)
+          )}
         </div>
       );
     });
@@ -167,27 +155,26 @@ const FileExplorer = () => {
     <div className="bg-white border rounded shadow p-4">
       <h2 className="text-lg font-semibold mb-2">File Explorer</h2>
       <div className="flex">
-        <div className="w-1/3 pr-4">
+        <div className="w-1/3 pr-4 overflow-auto">
           {renderTree(fileStructure)}
         </div>
         <div className="w-2/3">
           {fileContent !== null ? (
             <div>
-              <h3 className="text-lg font-bold mb-2">Editing File: {currentFilePath}</h3>
+              <h3 className="text-lg font-bold mb-2">Editing: {currentFilePath}</h3>
               <MonacoEditor
                 height="600px"
-                language={fileType || 'plaintext'} // Dynamically set language
+                language={fileType || 'plaintext'}
                 value={fileContent}
                 onChange={(newValue) => setFileContent(newValue || '')}
                 theme="vs-dark"
                 options={{
-                  readOnly: false,
                   minimap: { enabled: true },
                 }}
               />
               <button
-                className="mt-2 px-4 py-2 bg-blue-500 text-white rounded"
-                onClick={() => currentFilePath && saveFile(currentFilePath, fileContent)}
+                className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                onClick={saveFile}
               >
                 Save File
               </button>
@@ -203,13 +190,14 @@ const FileExplorer = () => {
   );
 };
 
-const SessionIdPage = () => {
+export default function SessionIdPage() {
   const params = useParams();
   const sessionId = params?.sessionId;
 
   if (!sessionId) {
     return <div>Loading...</div>;
   }
+
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Session Details for {sessionId}</h1>
@@ -219,6 +207,4 @@ const SessionIdPage = () => {
       </div>
     </div>
   );
-};
-
-export default SessionIdPage;
+}
