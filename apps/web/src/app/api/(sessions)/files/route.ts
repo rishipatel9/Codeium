@@ -3,69 +3,44 @@ import { supabaseClient } from '@/utils/SupabaseClient';
 import { AuthOptions, getServerSession } from 'next-auth';
 import { NEXT_AUTH } from '@/lib/auth';
 import prisma from '@/lib/prisma';
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export default async function handler(req: NextRequest, res: NextApiResponse) {
+export async function POST(req: NextRequest, res: NextApiResponse) {
   try {
-    // Parse the sessionId from the request body
-    const { sessionId } = await req.json();
-    console.log("Session ID:", sessionId);
-
-    // Get the current user session using next-auth
+    const { sessionId, path = '' } = await req.json();
     const session = await getServerSession(NEXT_AUTH as AuthOptions);
     
     if (!session) {
-      return res.status(401).json({ error: 'Unauthorized, no active session' });
+      return NextResponse.json({ error: 'Unauthorized, no active session' }, { status: 401 });
     }
 
-    // Find the user by email (based on session)
     const user = await prisma.user.findFirst({
       where: {
-        email: session.user?.email || "",
+        email: session.user?.email || '',
       },
     });
 
     if (!user) {
-      return res.status(401).json({ error: 'Unauthorized, user not found' });
+      return NextResponse.json({ error: 'Unauthorized, user not found' }, { status: 401 });
     }
 
-    // Verify the sessionId belongs to the logged-in user
-    const userSession = await prisma.session.findFirst({
-      where: {
-        userId: user.id,
-        id: sessionId,
-      },
-    });
-
-    if (!userSession) {
-      return res.status(404).json({ error: 'Session not found or does not belong to the user' });
-    }
-
-    console.log("Session verified for user:", user.id);
-
-    // Construct the storage path using the userId and sessionId
-    const path = `${user.id}/${sessionId}`;
-    console.log("Storage Path:", path);
-
-    // Fetch file structure from Supabase storage
+    const storagePath = `${user.id}/${sessionId}/${path}`;
     const { data, error } = await supabaseClient.storage
       .from(process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME as string)
-      .list(path);
+      .list(storagePath);
 
     if (error) {
-      return res.status(500).json({ error: 'Error fetching file structure' });
+      return NextResponse.json({ error: 'Error fetching file structure' }, { status: 503 });
     }
 
-    // Map the file structure to the appropriate format
-    const fileStructure = data?.map((item) => ({
+    const fileStructure = data?.map(item => ({
       name: item.name,
-      isFolder: item.metadata?.mimetype === null,  
+      isFolder: item.metadata?.mimetype === null,
     }));
 
-    // Return the file structure to the frontend
-    return res.status(200).json(fileStructure);
+    return NextResponse.json(fileStructure, { status: 200 });
   } catch (error) {
-    console.error("Server Error:", error);
-    return res.status(500).json({ error: 'Server error fetching file structure' });
+    console.error('Server Error:', error);
+    return NextResponse.json({ error: 'Server error fetching file structure' }, { status: 500 });
   }
 }

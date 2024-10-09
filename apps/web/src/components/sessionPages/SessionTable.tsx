@@ -49,7 +49,7 @@ const SessionTable = ({ sessions, loading }: { sessions: any[]; loading: boolean
                       </Link>
                     </TableCell>
                     <TableCell className="hidden sm:table-cell">{new Date(session.createdAt).toLocaleDateString()}</TableCell>
-                    <TableCell className="hidden md:table-cell">{new Date(session.updatedAt).toLocaleDateString()}</TableCell>
+                    <TableCell className="hidden md:table-cell">{new Date(session.createdAt).toLocaleDateString()}</TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>

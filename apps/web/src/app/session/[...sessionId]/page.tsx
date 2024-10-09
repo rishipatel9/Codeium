@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { Folder, File, ChevronRight, ChevronDown } from 'lucide-react';
 import { supabaseClient } from '@/utils/SupabaseClient';
 import dynamic from 'next/dynamic';
+import axios from 'axios';
 
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
   ssr: false,
@@ -14,6 +15,7 @@ const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
 interface FileStructure {
   [key: string]: FileStructure | null;
 }
+// 24252B
 
 const FileExplorer = () => {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -22,6 +24,9 @@ const FileExplorer = () => {
   const [currentFilePath, setCurrentFilePath] = useState<string | null>(null);
   const [fileType, setFileType] = useState<string | null>(null);
 
+  const params = useParams()
+  const sessionId = params?.sessionId
+
   const toggleFolder = async (path: string) => {
     setExpanded(prev => ({ ...prev, [path]: !prev[path] }));
     if (!expanded[path]) {
@@ -29,38 +34,31 @@ const FileExplorer = () => {
     }
   };
 
-  const fetchFileStructure = async (path: string = 'react') => {
+  const fetchFileStructure = async (path: string='react') => {
     try {
-      const { data, error } = await supabaseClient.storage
-        .from(process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME as string)
-        .list(path);
-
-      if (error) {
-        console.error('Error fetching file structure:', error);
-        return;
-      }
-
+      const res = await axios.post('/api/files', { sessionId });
+      console.log('API Response:', res);
+  
       const newStructure: FileStructure = {};
-
-      for (const item of data || []) {
-        if (item.metadata?.mimetype === null) {
-          // This is a folder
-          newStructure[item.name] = {};
+  
+      for (const item of res.data || []) {
+        if (item.isFolder) {
+          newStructure[item.name] = {}; 
         } else {
-          // This is a file
-          newStructure[item.name] = null;
+          newStructure[item.name] = null; 
         }
       }
 
       setFileStructure(prev => ({
         ...prev,
         [path]: newStructure
-      }));
-      console.log(fileStructure);
+      })); 
+      console.log('Updated File Structure:', newStructure);
     } catch (error) {
-      console.error('Failed to fetch files:', error);
+      console.error('Failed to fetch file structure:', error);
     }
   };
+  
 
   const fetchFileContent = async (path: string) => {
     try {
