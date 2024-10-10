@@ -6,7 +6,9 @@
     "start": "turbo start",
     "dev": "turbo dev",
     "lint": "turbo lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "dev:prisma": "npx prisma migrate dev --name 'init2' && npx prisma generate ",
+    "start:prisma": "npx prisma migrate dev && npx prisma generate"
   },
   "devDependencies": {
     "prettier": "^3.2.5",
@@ -26,6 +28,9 @@
   ],
   "dependencies": {
     "@prisma/client": "^5.20.0",
-    "@supabase/supabase-js": "^2.45.4"
+    "@supabase/supabase-js": "^2.45.4",
+    "next-auth": "^4.24.8",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   }
 }
