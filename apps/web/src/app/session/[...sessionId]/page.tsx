@@ -15,7 +15,6 @@ const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
 interface FileStructure {
   [key: string]: FileStructure | null;
 }
-// 24252B
 
 const FileExplorer = () => {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -24,8 +23,8 @@ const FileExplorer = () => {
   const [currentFilePath, setCurrentFilePath] = useState<string | null>(null);
   const [fileType, setFileType] = useState<string | null>(null);
 
-  const params = useParams()
-  const sessionId = params?.sessionId
+  const params = useParams();
+  const sessionId = params?.sessionId;
 
   const toggleFolder = async (path: string) => {
     setExpanded(prev => ({ ...prev, [path]: !prev[path] }));
@@ -34,31 +33,32 @@ const FileExplorer = () => {
     }
   };
 
-  const fetchFileStructure = async (path: string='react') => {
+  const fetchFileStructure = async (route:string='/') => {
     try {
-      const res = await axios.post('/api/files', { sessionId });
-      console.log('API Response:', res);
-  
-      const newStructure: FileStructure = {};
-  
+      const res = await axios.post('/api/files', { sessionId ,route});
+      console.log('API Response:', res.data); 
+      const path=res.data.files;
+      
+      const newStructure: FileStructure = res?.data?.files;
+
       for (const item of res.data || []) {
         if (item.isFolder) {
-          newStructure[item.name] = {}; 
+          newStructure[item.name] = item.children ? item.children : {}; 
         } else {
           newStructure[item.name] = null; 
         }
       }
-
-      setFileStructure(prev => ({
+      console.log(newStructure);
+      
+      setFileStructure((prev) => ({
         ...prev,
-        [path]: newStructure
-      })); 
-      console.log('Updated File Structure:', newStructure);
+        [path]: newStructure, 
+      }));
+      console.log('Updated File Structure:', newStructure); // Log the updated structure
     } catch (error) {
       console.error('Failed to fetch file structure:', error);
     }
   };
-  
 
   const fetchFileContent = async (path: string) => {
     try {
@@ -89,7 +89,7 @@ const FileExplorer = () => {
       ts: 'typescript',
       json: 'json',
       css: 'css',
-      html: 'html'
+      html: 'html',
     };
     return typeMap[extension || ''] || 'plaintext';
   };
@@ -102,7 +102,7 @@ const FileExplorer = () => {
         .from(process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME as string)
         .update(currentFilePath, fileContent, {
           cacheControl: '3600',
-          upsert: true
+          upsert: true,
         });
 
       if (error) {
@@ -129,11 +129,9 @@ const FileExplorer = () => {
         <div key={fullPath} className="ml-4">
           <div
             className="flex items-center cursor-pointer hover:bg-gray-100 p-1"
-            onClick={() => isFolder ? toggleFolder(fullPath) : fetchFileContent(fullPath)}
+            onClick={() => (isFolder ? toggleFolder(fullPath) : fetchFileContent(fullPath))}
           >
-            {isFolder && (
-              isExpanded ? <ChevronDown className="w-4 h-4 mr-1" /> : <ChevronRight className="w-4 h-4 mr-1" />
-            )}
+            {isFolder && (isExpanded ? <ChevronDown className="w-4 h-4 mr-1" /> : <ChevronRight className="w-4 h-4 mr-1" />)}
             {isFolder ? (
               <Folder className="w-4 h-4 mr-1 text-yellow-500" />
             ) : (
@@ -141,9 +139,7 @@ const FileExplorer = () => {
             )}
             <span>{name}</span>
           </div>
-          {isFolder && isExpanded && fileStructure[fullPath] && (
-            renderTree(fileStructure[fullPath] as FileStructure, fullPath)
-          )}
+          {isFolder && isExpanded && value && renderTree(value, fullPath)} {/* Recursively render children */}
         </div>
       );
     });

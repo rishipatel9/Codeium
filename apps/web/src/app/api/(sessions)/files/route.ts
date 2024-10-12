@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest, res: NextApiResponse) {
   try {
-    const { sessionId, path = '' } = await req.json();
+    const { sessionId,route} = await req.json();
     const session = await getServerSession(NEXT_AUTH as AuthOptions);
     
     if (!session) {
@@ -23,8 +23,12 @@ export async function POST(req: NextRequest, res: NextApiResponse) {
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized, user not found' }, { status: 401 });
     }
-
-    const storagePath = `${user.id}/${sessionId}/${path}`;
+    let storagePath=route;
+    if(route=='/'){
+      storagePath = `${user.id}/${sessionId}/`;  
+    }
+    console.log("Storage Path",storagePath);
+    
     const { data, error } = await supabaseClient.storage
       .from(process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME as string)
       .list(storagePath);
@@ -32,15 +36,14 @@ export async function POST(req: NextRequest, res: NextApiResponse) {
     if (error) {
       return NextResponse.json({ error: 'Error fetching file structure' }, { status: 503 });
     }
-
+    console.log(data);
     const fileStructure = data?.map(item => ({
       name: item.name,
-      isFolder: item.metadata?.mimetype === null,
+      isFolder: item.metadata === null,
     }));
 
-    return NextResponse.json(fileStructure, { status: 200 });
+    return NextResponse.json({files:fileStructure,path: storagePath}, { status: 200 });
   } catch (error) {
     console.error('Server Error:', error);
-    return NextResponse.json({ error: 'Server error fetching file structure' }, { status: 500 });
   }
 }
