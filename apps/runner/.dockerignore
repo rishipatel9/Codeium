@@ -1,7 +1,9 @@
 dockerfile
 node_modules
 npm-debug.log
+script.sh
 build
 .git
+.env
 .gitignore
 .dockerignore

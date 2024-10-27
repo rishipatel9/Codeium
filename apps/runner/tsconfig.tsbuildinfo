@@ -1,1 +1,1 @@
-{"root":["./src/index.ts","./src/supabasestorage.ts"],"version":"5.6.2"}
+{"root":["./src/index.ts","./src/supabasestorage.ts","./src/terminal.ts"],"version":"5.6.3"}

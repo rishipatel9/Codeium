@@ -1,5 +1,11 @@
 FROM node:18-alpine
 
+RUN apk add --no-cache python3 make g++
+
+RUN apk add --no-cache zsh
+
+RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+
 WORKDIR /runner
 
 COPY package*.json ./
@@ -9,8 +15,6 @@ RUN npm install
 COPY . /runner
 
 EXPOSE 5173
-
-RUN chmod -R 700 /runner
 
 EXPOSE 4000
 
