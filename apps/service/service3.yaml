@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: runner-deployment
+  labels:
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: runner
+  template:
+    metadata:
+      labels:
+        app: runner
+    spec:
+      volumes:
+        - name: workspace-volume
+          emptyDir: {}
+      containers:
+        - name: runner
+          image: rishi91/runner:latest
+          ports:
+            - containerPort: 4000
+            - containerPort: 5173
+          volumeMounts:
+            - name: workspace-volume
+              mountPath: /workspace
+          env:
+            - name: SUPABASE_URL
+              value:
+            - name: SUPABASE_ANON_KEY
+              value: 
+            - name: BUCKET_NAME
+              value: 
+          resources:
+            requests:
+              cpu: "1"
+              memory: "1Gi"
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: runner-service
+spec:
+  selector:
+    app: runner
+  ports:
+    - name: http-4000       
+      protocol: TCP
+      port: 4000
+      targetPort: 4000
+      nodePort: 30007
+    - name: http-5173        
+      protocol: TCP
+      port: 5173
+      targetPort: 5173
+      nodePort: 30008
+  type: NodePort
+
+
