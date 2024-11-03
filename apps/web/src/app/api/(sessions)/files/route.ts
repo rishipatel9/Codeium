@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest, res: NextApiResponse) {
   try {
+    console.log("Request recived")
     const { sessionId,route} = await req.json();
     const session = await getServerSession(NEXT_AUTH as AuthOptions);
     
@@ -36,12 +37,12 @@ export async function POST(req: NextRequest, res: NextApiResponse) {
     if (error) {
       return NextResponse.json({ error: 'Error fetching file structure' }, { status: 503 });
     }
-    console.log(data);
+
     const fileStructure = data?.map(item => ({
       name: item.name,
       isFolder: item.metadata === null,
     }));
-
+    
     return NextResponse.json({files:fileStructure,path: storagePath}, { status: 200 });
   } catch (error) {
     console.error('Server Error:', error);
