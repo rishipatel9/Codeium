@@ -2,7 +2,7 @@ import express from "express";
 import { WebSocketServer } from "ws";
 import cors from "cors";
 import http from "http";
-import { fetchSupabaseFolder } from "./supabaseStorage";
+import { fetchSupabaseFolder, generateFileTree } from "./supabaseStorage";
 import Terminal from "./terminal";
 
 const app = express();
@@ -70,11 +70,24 @@ wss.on('connection', (ws: any) => {
         }
       }
 
+     
+
       if (action === "close") {
         console.log(`Closing terminal session for sessionId: ${sessionId}`);
         terminalManager.close(sessionId);
         ws.send(JSON.stringify({ message: `Terminal session closed for sessionId: ${sessionId}` }));
       }
+    }
+    if(parsedMessage.type === "filetree") {
+      console.log("Received filetree request");
+      let fileTree;
+     try{
+       fileTree = await generateFileTree("../apps");
+     }catch(e){
+        console.log("Error occurred", e);
+        ws.send(JSON.stringify({ message: "Failed to generate file tree" }));
+     }
+      ws.send(JSON.stringify({ fileTree }));
     }
   });
 

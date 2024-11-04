@@ -130,3 +130,30 @@ export const saveToSupabase = async ( key: string, content: string): Promise<voi
         console.log(`File saved to ${bucketName}/${key}`);
     }
 }
+
+
+export async  function generateFileTree(directory: string): Promise<any> {
+  const tree = {}
+  interface FileTree {
+    [key: string]: FileTree | null;
+  }
+
+  async function buildTree(currentDir: string, currentTree: FileTree): Promise<void> {
+    const files: string[] = await fs.promises.readdir(currentDir);
+
+    for (const file of files) {
+      const filePath: string = path.join(currentDir, file);
+      const stat: fs.Stats = await fs.promises.stat(filePath);
+
+      if (stat.isDirectory()) {
+        currentTree[file] = {};
+        await buildTree(filePath, currentTree[file] as FileTree);
+      } else {
+        currentTree[file] = null;
+      }
+    }
+  }
+
+  await buildTree(directory, tree);
+  return tree
+}
