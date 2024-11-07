@@ -1,4 +1,4 @@
-import { CreateSession } from '@/components/sessionPages/CreateSession';
+import Session from '@/components/Main/Session';
 import { NEXT_AUTH } from '@/lib/auth';
 import { AuthOptions, getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
@@ -14,9 +14,8 @@ const Page = async () => {
     redirect(`/`);
   } 
   return (
-    <>
-        <CreateSession/>
-    </>
+      <Session/>
+
   );
 };
 
