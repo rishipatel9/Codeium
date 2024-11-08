@@ -17,38 +17,35 @@ export const fetchSupabaseFolder = async (folderPath: string, localPath: string)
       limit: 100,
     });
 
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
 
     if (data) {
-      await Promise.all(data.map(async (fileOrFolder:any) => {
+      await Promise.all(data.map(async (fileOrFolder: any) => {
         const itemPath = `${folderPath}/${fileOrFolder.name}`;
 
-        if (fileOrFolder.metadata) {
+        if (fileOrFolder.metadata) { //
           const { data: fileData, error: downloadError } = await supabase
             .storage
             .from(bucketName)
             .download(itemPath);
 
-          if (downloadError) {
-            throw downloadError;
-          }
+          if (downloadError) throw downloadError;
 
           if (fileData) {
             const localFilePath = path.join(localPath, fileOrFolder.name);
-
             const dirPath = path.dirname(localFilePath);
-            fs.mkdir(dirPath,{recursive:true},()=>{})
 
-             const buffer = await fileData.arrayBuffer();
-             const bufferData = Buffer.from(buffer);
-             fs.writeFile(localFilePath, bufferData,()=>{});
+            // Ensure the directory exists
+            await fs.promises.mkdir(dirPath, { recursive: true });
+
+            // Write file data to local path
+            const buffer = await fileData.arrayBuffer();
+            const bufferData = Buffer.from(buffer);
+            await fs.promises.writeFile(localFilePath, bufferData);
 
             console.log(`Downloaded ${itemPath} to ${localFilePath}`);
           }
-        } else {
-          // If item is a folder, recursively fetch its contents
+        } else { // Folder item
           const newLocalPath = path.join(localPath, fileOrFolder.name);
           await fetchSupabaseFolder(itemPath, newLocalPath);
         }
@@ -132,28 +129,47 @@ export const saveToSupabase = async ( key: string, content: string): Promise<voi
 }
 
 
-export async  function generateFileTree(directory: string): Promise<any> {
-  const tree = {}
+export async function generateFileTree(directory: string): Promise<any> {
+  const tree = {};
+
   interface FileTree {
     [key: string]: FileTree | null;
   }
 
   async function buildTree(currentDir: string, currentTree: FileTree): Promise<void> {
     const files: string[] = await fs.promises.readdir(currentDir);
-
-    for (const file of files) {
+    
+    // Process files in parallel using Promise.all
+    await Promise.all(files.map(async (file) => {
       const filePath: string = path.join(currentDir, file);
       const stat: fs.Stats = await fs.promises.stat(filePath);
 
       if (stat.isDirectory()) {
         currentTree[file] = {};
-        await buildTree(filePath, currentTree[file] as FileTree);
+        await buildTree(filePath, currentTree[file] as FileTree);  
       } else {
-        currentTree[file] = null;
+        currentTree[file] = null;  // It's a file
       }
-    }
+    }));
   }
 
   await buildTree(directory, tree);
-  return tree
+  return tree;
 }
+
+export const checkIfFolderExists = async (folderPath: string): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase
+      .storage
+      .from(bucketName)  
+      .list(folderPath); 
+    if (error) {
+      console.log("Error checking folder existence", error);
+      return false;
+    }
+    return data?.length > 0;
+  } catch (e) {
+    console.log("Error during folder existence check:", e);
+    return false;
+  }
+};
