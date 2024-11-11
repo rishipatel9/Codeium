@@ -1,1 +1,1 @@
-{"root":["./src/index.ts","./src/supabasestorage.ts","./src/terminal.ts"],"version":"5.6.3"}
+{"root":["./src/index.ts","./src/ws.ts","./src/handler/filehandler.ts","./src/handler/folderhandler.ts","./src/handler/terminalhandler.ts","./src/utils/supabasestorage.ts","./src/utils/terminal.ts"],"version":"5.6.3"}
