@@ -1,16 +1,25 @@
 import { CodeIcon } from '@/icons/CodeIcon';
 import { Session } from '@/types';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@radix-ui/react-dropdown-menu';
 import Link from 'next/link';
 import React from 'react';
 import { Button } from '../ui/button';
 import { Ellipsis } from 'lucide-react';
 
-const SessionCard = ({ Details }: { Details: Session }) => {
+interface SessionCardProps {
+    Details: Session;
+}
+
+const SessionCard: React.FC<SessionCardProps> = ({ Details }) => {
     const createdAtDate = new Date(Details.createdAt);
-    const currentDate = new Date();
-    const timeDifference = currentDate.getTime() - createdAtDate.getTime();
-    const daysPassed = Math.floor(timeDifference / (1000 * 3600 * 24));
+    const daysPassed = Math.floor((Date.now() - createdAtDate.getTime()) / (1000 * 3600 * 24));
+    const createdText = daysPassed === 0 ? 'Today' : `${daysPassed} ${daysPassed === 1 ? 'day' : 'days'} ago`;
 
     return (
         <Link href={`/session/${Details.id}`} className="bg-[#0A0A0A] border border-[#2D2D2D] p-6 rounded-lg transition-all hover:border-white block">
@@ -32,8 +41,8 @@ const SessionCard = ({ Details }: { Details: Session }) => {
                         sideOffset={5}
                         className="bg-black border border-[#2D2D2D] rounded-md text-left text-white"
                     >
-                        <DropDownItem name="Open">{Details.id}</DropDownItem>
-                        <DropDownItem name="Settings">{Details.id}</DropDownItem>
+                        <DropDownItem label="Open" id={Details.id} />
+                        <DropDownItem label="Settings" id={Details.id} />
                         <DropdownMenuSeparator />
                         <DropdownMenuItem>
                             <Button variant="destructive" className="text-red-600 text-left w-full">
@@ -43,22 +52,25 @@ const SessionCard = ({ Details }: { Details: Session }) => {
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
-            <p className="text-sm text-gray-400 mt-2">{Details.desc}</p>
-            <div className="text-xs text-gray-500 mt-2">
-                Created: {daysPassed === 0 ? 'Today' : `${daysPassed} ${daysPassed === 1 ? 'day' : 'days'} ago`}
-            </div>
+            <p className="text-sm text-[#8E8E8E] mt-2">{Details.desc}</p>
+            <div className="text-xs text-[#8E8E8E] mt-2">Created: {createdText}</div>
         </Link>
     );
 };
 
 export default SessionCard;
 
-function DropDownItem({children,name}:{children: string,name?:string}) {
+interface DropDownItemProps {
+    label: string;
+    id: string;
+}
+
+const DropDownItem: React.FC<DropDownItemProps> = ({ label, id }) => {
     return (
         <DropdownMenuItem>
-        <Link href={`/session/${children}/settings`} prefetch={false} className="text-white text-center w-full block">
-            {name}
-        </Link>
-    </DropdownMenuItem>
-    )
-}
+            <Link href={`/session/${id}/${label.toLowerCase()}`} prefetch={false} className="text-white text-center w-full block">
+                {label}
+            </Link>
+        </DropdownMenuItem>
+    );
+};

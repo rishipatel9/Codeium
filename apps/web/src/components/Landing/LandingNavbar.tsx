@@ -5,7 +5,7 @@ import Link from 'next/link'
 
 const LandingNavbar = () => {
   return (
-    <header className="w-full flex justify-center items-center px-4 lg:px-6 h-14 max-w-7xl mx-auto py-3 md:py-4">
+    <header className="w-full flex justify-center items-center px-4 lg:px-6 h-14 max-w-7xl mx-auto py-4 md:py-4">
     <Logo />
     <nav className="ml-auto flex gap-4 sm:gap-6">
       <StarButton />

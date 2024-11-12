@@ -1,7 +1,10 @@
+'use client'
 import React from 'react';
 import Logo from '../Logo/Logo';
 import StarButton from '../Landing/StarButton';
 import Image from 'next/image';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
+import Link from 'next/link';
 
 interface UserSession {
   name: string;
@@ -12,15 +15,12 @@ interface UserSession {
 const MainNav = ({ name }: { name: any }) => {
   return (
     <header className="w-full flex items-center h-16 md:px-6 px-4 bg-[#0A0A0A] top-0 left-0 z-20 border-b border-[#2D2D2D]">
-      {/* Logo with clickable link */}
-      <a href="/" aria-label="Homepage" className="flex items-center">
+      <div aria-label="Homepage" className="md:flex items-center hidden">
         <Logo />
-      </a>
-      
-      {/* Divider */}
-      <p className="text-[#525050] text-2xl px-3">/</p>
+      </div>
 
-      {/* Profile Image and User Name */}
+      <p className="text-[#525050] text-2xl px-3 md:inline hidden">/</p>
+
       <div className="flex items-center gap-2">
         {name?.image && (
           <Image
@@ -31,12 +31,11 @@ const MainNav = ({ name }: { name: any }) => {
             className="rounded-full border-2 border-[#2D2D2D]"
           />
         )}
-        <p className="text-[#EDEDED] text-sm font-semibold">
-          {name ? `${name.name.toLowerCase()}'s projects` : 'User'}
+        <p className="text-[#EDEDED] text-base ">
+          {name ? `${name.name}'s projects` : 'User'}
         </p>
       </div>
 
-      {/* Divider Icon */}
       <svg
         className="ml-4 sm:block hidden"
         fill="none"
@@ -52,16 +51,41 @@ const MainNav = ({ name }: { name: any }) => {
         <path d="M16.88 3.549L7.12 20.451"></path>
       </svg>
 
-      {/* Navigation Links (e.g., GitHub Star Button) */}
+
       <nav className="ml-auto flex items-center gap-4 sm:gap-6">
         <StarButton />
-        
-        {/* Conditional Greeting */}
-        {name && (
-          <p className="text-[#8E8E8E] text-sm hidden md:inline-block">
-            Hello, {name.name.split(' ')[0]}!
-          </p>
-        )}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            {name?.image && (
+              <Image
+                src={name.image}
+                alt="Profile image"
+                width={36}
+                height={36}
+                className="rounded-full border-2 border-[#2D2D2D] md:inline hidden"
+              />
+            )}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56 mt-6 mr-6 p-2 rounded-md text-[#8E8E8E] focus-visible:false border-2 z-50  border-[#27272B] bg-black">
+            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-[#27272B]" />
+            <DropdownMenuGroup>
+              <DropdownMenuItem className='py-2'>
+                <Link href="/session">Dashboard</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem className='py-2'>
+                <Link href="/" target='_main'>Home</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem className='py-2' >
+                <Link href="/profile">Profile</Link>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator className="bg-[#27272B]" />
+            <DropdownMenuSeparator className="bg-[#27272B]" />
+            <DropdownMenuLabel>Connect</DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-[#27272B]" />
+          </DropdownMenuContent>
+        </DropdownMenu>
       </nav>
     </header>
   );

@@ -1,17 +1,40 @@
-'use client'
-import React, { useEffect, useRef, useState } from "react";
+"use client";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Terminal as XTerm } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 import "xterm/css/xterm.css";
 
 const TerminalComponent: React.FC = () => {
-  const terminalRef = useRef<HTMLDivElement | null>(null);
-  const [socket, setSocket] = useState<WebSocket | null>(null); 
-  const sessionId = useRef<string | null>(null); 
-  const xterm = useRef<XTerm | null>(null); 
-  const fitAddon = useRef(new FitAddon()); 
+  const [socket, setSocket] = useState<WebSocket | null>(null);
+  const sessionId = useRef<string | null>(null);
+  const xterm = useRef<XTerm | null>(null);
+  const fitAddon = useRef(new FitAddon());
+
+  const terminalRefCallback = useCallback((node: HTMLDivElement | null) => {
+    if (node) {
+      xterm.current = new XTerm({
+        cursorBlink: true,
+        fontSize: 14,
+        fontFamily: "JetBrains Mono, monospace",
+      });
+      xterm.current.loadAddon(fitAddon.current);
+      xterm.current.open(node);
+
+      setTimeout(() => fitAddon.current.fit(), 500);
+      const resizeObserver = new ResizeObserver(() => {
+        fitAddon.current.fit();
+      });
+      resizeObserver.observe(node);
+
+      return () => {
+        xterm.current?.dispose();
+        resizeObserver.disconnect();
+      };
+    }
+  }, []);
+
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:30007");
+    const ws = new WebSocket("ws://localhost:4000");
     setSocket(ws);
 
     ws.onopen = () => {
@@ -29,10 +52,12 @@ const TerminalComponent: React.FC = () => {
     ws.onmessage = (message: MessageEvent) => {
       const data = JSON.parse(message.data);
       if (data.sessionId === sessionId.current && data.data) {
-        if (xterm.current) {
-          xterm.current.write(data.data);
-        }
+        xterm.current?.write(data.data);
       }
+    };
+
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
     };
 
     ws.onclose = () => {
@@ -45,16 +70,7 @@ const TerminalComponent: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (terminalRef.current) {
-      // Initialize XTerm
-      xterm.current = new XTerm();
-      xterm.current.loadAddon(fitAddon.current);
-      xterm.current.open(terminalRef.current);
-
-      // Resize the terminal to fit the container
-      fitAddon.current.fit();
-
-      // Handle terminal input and send to WebSocket
+    if (xterm.current && socket) {
       xterm.current.onData((data: string) => {
         if (socket && sessionId.current) {
           socket.send(
@@ -68,20 +84,14 @@ const TerminalComponent: React.FC = () => {
         }
       });
     }
-
-    // Cleanup on component unmount
-    return () => {
-      if (xterm.current) {
-        xterm.current.dispose();
-      }
-    };
   }, [socket]);
 
   return (
     <div>
       <div
-        ref={terminalRef}
-        style={{ width: "100%", height: "500px", backgroundColor: "#24252B" }}
+        ref={terminalRefCallback}
+        className="p-2"
+        style={{ width: "100%", height: "100%", maxHeight: 'calc(100vh - <HEADER_HEIGHT>)', overflow: "auto", backgroundColor: "black" }}
       ></div>
     </div>
   );

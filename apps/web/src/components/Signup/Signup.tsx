@@ -1,6 +1,5 @@
 import React from "react";
 import { Label } from "../ui/label";
-import { cn } from "@/lib/utils";
 import SignupButtons, { BottomGradient } from "../Signup/SignupButtons";
 import  { EmailInput, PasswordInput } from "../Signup/InputBox";
 import { LabelInputContainer } from "../ui/LabelInputContainer";
