@@ -7,7 +7,7 @@ export function PlusIcon(props: any) {
         height="24"
         viewBox="0 0 24 24"
         fill="none"
-        stroke="#7f7ff5"
+        stroke="black"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"

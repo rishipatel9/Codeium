@@ -2,6 +2,7 @@ import GoogleProvider from "next-auth/providers/google";
 import GithubProvider from "next-auth/providers/github";
 import prisma from "./prisma";
 import { Usr } from "@/types";
+import { signIn } from "next-auth/react";
 
 const NEXT_AUTH = {
   providers: [
@@ -16,7 +17,7 @@ const NEXT_AUTH = {
   ],
   secret: process.env.NEXT_SECRET,
   pages: {
-    signUp: "/signup",
+    signIn: "/signup",
     error: "/auth/error",
   },
   callbacks: {
@@ -51,6 +52,17 @@ const NEXT_AUTH = {
       }
     },
   },
+  signIn:{
+    async signIn(user: Usr, account: any, profile: any): Promise<boolean> {
+      console.log(user);
+      console.log(account);
+      console.log(profile);
+      if (account.provider === "google" || account.provider === "github") {
+      return true;
+      }
+      return false;
+    },
+  }
 };
 
 export { NEXT_AUTH };

@@ -19,17 +19,20 @@ export function useWebSocket(session: string) {
     ws.onmessage = (event) => {
       const parsedData = JSON.parse(event.data);
       console.log("Received data", parsedData);
-
-      // Update file tree
+    
       if (parsedData.fileTree) {
         setFileTree(parsedData.fileTree);
       }
-
-      // Update editor content when file data is received
+      
       if (parsedData.type === "file" && parsedData.action === "read") {
-        setEditorContent(parsedData.payload.content || ""); 
+        setEditorContent(parsedData.payload.content || "");
+        console.log(editorContent)
+      }
+      if (parsedData.updatedFileTree) {
+        setFileTree(parsedData.updatedFileTree); 
       }
     };
+    
 
     return () => {
       ws.close();
@@ -41,5 +44,25 @@ export function useWebSocket(session: string) {
     wsRef.current?.send(JSON.stringify({ type: "file", action: "read", payload: { path: filePath } }));
   };
 
-  return { fileTree, editorContent, fetchFile , setEditorContent};
+  const handleCreateFile = (path: string, filename: string) =>  {
+    wsRef.current?.send(
+      JSON.stringify({
+        type: "file",
+        action: "create",
+        payload: { path: path, name: filename, content: "Initial file content" },
+      })
+    );
+  };
+
+  const handleCreateFolder=(path:string,folderName:string)=> {
+    wsRef.current?.send(
+      JSON.stringify({
+        type: "folder",
+        action: "create",
+        payload: { path: path, name: folderName },
+      })
+    )
+  }
+  
+  return { fileTree, editorContent, fetchFile , setEditorContent, handleCreateFile,handleCreateFolder };
 }

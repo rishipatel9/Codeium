@@ -1,4 +1,5 @@
-import { Socket } from "./Websocket";
+import WebSocketManager from "./Websocket";
+
 
 type PingWebsiteProps = {
     url: string;
@@ -10,7 +11,7 @@ export const pingWebsite = async ({ url, interval, maxAttempts }: PingWebsitePro
     let attempts = 0;
 
     const checkWebsite = async () => {
-        const isServerUp = await checkWebSocketServer(url);
+        const isServerUp = await WebSocketManager.getInstance()?.isServerUp();
         if (isServerUp) {
             console.log(`${url} is up!`);
             await sendYourRequest(); 
@@ -30,31 +31,10 @@ export const pingWebsite = async ({ url, interval, maxAttempts }: PingWebsitePro
 
 const sendYourRequest = async () => {
     try {
-        Socket?.send("hello world"); 
+        WebSocketManager.getInstance()?.sendMessage({message:"hello world"}); 
         console.log('Message sent to WebSocket: "hello world"');
     } catch (error) {
         console.error('Error sending request:', error);
     }
 };
 
-const checkWebSocketServer = async (url: string): Promise<boolean> => {
-    return new Promise((resolve) => {
-        const socket = new WebSocket(url);
-
-        socket.onopen = () => {
-            socket.close();
-            resolve(true);
-        };
-
-        socket.onerror = () => {
-            resolve(false);
-        };
-    });
-};
-
-// Usage
-// const urlToPing = 'ws://localhost:30007'; /
-// const intervalInMilliseconds = 5000; 
-// const maximumAttempts = 10;
-
-// pingWebsite({ url: urlToPing, interval: intervalInMilliseconds, maxAttempts: maximumAttempts });
