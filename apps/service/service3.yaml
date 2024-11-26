@@ -3,8 +3,8 @@ kind: Deployment
 metadata:
   name: runner-deployment
   labels:
+    app: runner
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: runner
@@ -27,18 +27,18 @@ spec:
               mountPath: /workspace
           env:
             - name: SUPABASE_URL
-              value:
+              value: https://lrxckwrdfioeigpdlznj.supabase.co
             - name: SUPABASE_ANON_KEY
-              value: 
+              value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxyeGNrd3JkZmlvZWlncGRsem5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjMxMDMwMDIsImV4cCI6MjAzODY3OTAwMn0.ZuG3TqMUBeaCghtmxv2raVb7qgYnfyeEWSa5ujyeYRU
             - name: BUCKET_NAME
-              value: 
+              value: files
           resources:
             requests:
-              cpu: "1"
-              memory: "1Gi"
+              cpu: "200m"
+              memory: "256Mi"
             limits:
-              cpu: "1"
-              memory: "1Gi"
+              cpu: "500m"
+              memory: "512Mi"
 ---
 apiVersion: v1
 kind: Service
@@ -48,16 +48,14 @@ spec:
   selector:
     app: runner
   ports:
-    - name: http-4000       
+    - name: http-4000
       protocol: TCP
       port: 4000
       targetPort: 4000
-      nodePort: 30007
-    - name: http-5173        
+      nodePort: 30007  # This will be dynamically replaced
+    - name: http-5173
       protocol: TCP
       port: 5173
       targetPort: 5173
-      nodePort: 30008
+      nodePort: 30008  # This will be dynamically replaced
   type: NodePort
-
-

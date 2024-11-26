@@ -1,5 +1,5 @@
 import { Input } from "@/components/ui/input";
-import { MagnifyingGlassIcon, PlusIcon } from "@heroicons/react/24/solid";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 import AddNewSession from "./AddNewSession";
 
 export default function SearchBar() {

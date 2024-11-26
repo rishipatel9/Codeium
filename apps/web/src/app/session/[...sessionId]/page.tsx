@@ -16,12 +16,12 @@ const Page = async ({ params }: PageProps) => {
   } 
   const userSession = await getValidSession(session.user?.email || null ,typeof sessionId === "string" ? sessionId : sessionId?.[0] || null);
   if (!userSession) {
-    console.log(userSession)
+    console.log(userSession);
     redirect('/');
   }
 
   return (
-    <Editor session={userSession} />
+    <Editor session={userSession.path} name={userSession?.sessionName.toString()} />
   );
 };
 

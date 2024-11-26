@@ -22,7 +22,7 @@ export const getValidSession = async (
             id: sessionId || "",
           },
           select: {
-            name: true, // Assuming session has a "name" field
+            name: true,
           },
         },
       },

@@ -4,7 +4,7 @@ import { AuthOptions, getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import React from 'react';
 
-const getUserDetails = async () => {
+export const getUserDetails = async () => {
   const session = await getServerSession(NEXT_AUTH as AuthOptions);
   return session;
 };
@@ -14,8 +14,7 @@ const Page = async () => {
     redirect(`/`);
   } 
   return (
-      <Session/>
-
+    <Session />
   );
 };
 
